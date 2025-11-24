@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | SSL Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #6366f1; --bg-body: #f3f4f6; --bg-glass: rgba(255, 255, 255, 0.8); --border-glass: rgba(255, 255, 255, 0.6); --text-main: #1f2937; --text-light: #6b7280; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); --sidebar-width: 260px; }
+        body.dark-mode { --bg-body: #0f172a; --bg-glass: rgba(30, 41, 59, 0.7); --border-glass: rgba(255, 255, 255, 0.05); --text-main: #f3f4f6; --text-light: #9ca3af; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-body); color: var(--text-main); min-height: 100vh; display: flex; }
+        
+        /* Sidebar & Layout */
+        .sidebar { width: var(--sidebar-width); background: var(--bg-glass); backdrop-filter: blur(20px); border-right: 1px solid var(--border-glass); height: 100vh; position: fixed; padding: 2rem; display: flex; flex-direction: column; z-index: 100; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-bottom: 3rem; display: flex; align-items: center; gap: 10px; }
+        .nav-links { list-style: none; flex: 1; }
+        .nav-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; background: transparent; border: none; color: var(--text-light); font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 0.95rem; }
+        .nav-btn:hover { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        .nav-btn.active { font-weight: 700; background: var(--primary); color: white; }
+        .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-glass); }
+        .main-content { margin-left: var(--sidebar-width); flex: 1; padding: 2rem 3rem; width: calc(100% - var(--sidebar-width)); }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .btn { padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; border: 1px solid var(--border-glass); }
+        .btn-primary { background: var(--primary); color: white; border: none; }
+        .btn-glass { background: var(--bg-glass); color: var(--text-main); }
+        
+        /* Grid & Cards */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 24px; }
+        .card { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: 20px; padding: 24px; position: relative; overflow: hidden; backdrop-filter: blur(12px); box-shadow: var(--shadow); transition: all 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+
+        /* ----- Animations ----- */
+        @keyframes enterSmall { from { opacity: 0; transform: translateY(30px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(0.96); } }
+        @keyframes popToReal { 0% { opacity: 0.8; transform: scale(0.96); filter: blur(4px); } 100% { opacity: 1; transform: scale(1); filter: blur(0); } }
+
+        .card.loading { transform: scale(0.96); opacity: 0; animation: enterSmall 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .card-loaded { animation: popToReal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        
+        /* Styles */
+        .card.loading::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--text-light); opacity: 0.3; }
+        .blur-content { filter: blur(8px); opacity: 0.5; pointer-events: none; user-select: none; }
+        .card:not(.loading)::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; transition: background 0.3s; }
+        .card.valid::before { background: var(--success); } .card.warning::before { background: var(--warning); } .card.expired::before { background: var(--danger); } .card.error::before { background: var(--text-light); }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-glass); padding-bottom: 15px; }
+        .domain-title { font-size: 1.2rem; font-weight: 700; }
+        .info-section { margin-bottom: 15px; }
+        .info-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem; }
+        .value { font-weight: 600; }
+        .days-badge { padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; }
+        .days-badge.valid { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .days-badge.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .days-badge.expired { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        #loader { display: none; } 
+        @media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-left: 0; width: 100%; } }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="logo">🔒 <span>SSL Monitor</span></div>
+        <ul class="nav-links">
+            <li><button class="nav-btn active">Dashboard</button></li>
+            <li id="adminLink" style="display: none;"><button class="nav-btn" onclick="window.location.href='/admin'">Admin Settings</button></li>
+        </ul>
+        <div class="sidebar-footer">
+            <button class="nav-btn" onclick="toggleTheme()">🌙 <span id="themeText">Dark Mode</span></button>
+            <button class="nav-btn" onclick="logout()" style="color: var(--danger);">🚪 Logout</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <div><h1>Dashboard</h1><p>Monitoring <span id="domainCount">...</span> domains</p></div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-glass" onclick="toggleAutoRefresh()"><span id="autoRefreshText">⏸️ Auto</span></button>
+                <button class="btn btn-primary" onclick="triggerManualCheck()">⚡ Check Now</button>
+            </div>
+        </div>
+        <div id="domainsContainer" class="grid"></div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('access_token');
+        if (!token) window.location.href = '/login';
+        
+        let autoRefreshEnabled = true;
+        let countdown = 60;
+
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); document.getElementById('themeText').textContent='Light Mode'; }
+        }
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeText').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        }
+        function logout() { if(confirm("Logout?")){ localStorage.removeItem('access_token'); window.location.href='/login'; } }
+
+        // 1. رندر کارت‌های لودینگ
+        function renderLoadingCards(domains) {
+            const container = document.getElementById('domainsContainer');
+            document.getElementById('domainCount').textContent = domains.length;
+            
+            container.innerHTML = domains.map((d, index) => {
+                const delay = index * 0.08;
+                return `
+                <div class="card loading" id="card-${d.url}" style="animation-delay: ${delay}s;">
+                    <div class="card-header">
+                        <div class="domain-title" style="opacity: 0.7;">${d.url}</div>
+                        <span style="font-size: 0.8rem; opacity: 0.7;">⌛ wait...</span>
+                    </div>
+                    <div class="blur-content">
+                        <div class="info-section">
+                            <div class="info-title">🔒 SSL Certificate</div>
+                            <div class="info-row"><span class="label">Expires</span><span class="value">Loading...</span></div>
+                            <div class="info-row"><span class="label">Status</span><span class="days-badge">...</span></div>
+                        </div>
+                        <div class="info-section" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05);">
+                            <div class="info-title">🌐 Domain Registration</div>
+                            <div class="info-row"><span class="label">Expires</span><span class="value">Loading...</span></div>
+                            <div class="info-row"><span class="label">Status</span><span class="days-badge">...</span></div>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // 2. آپدیت کارت‌ها با دیتای واقعی
+        function updateCardsWithData(data) {
+            // نکته: اینجا دیگر نیازی به چک کردن ادمین نیست چون در initDashboard انجام شده
+            document.getElementById('domainCount').textContent = data.domains.length;
+            const container = document.getElementById('domainsContainer');
+            
+            container.innerHTML = data.domains.map(d => `
+                <div class="card ${d.overall_status} card-loaded">
+                    <div class="card-header">
+                        <div class="domain-title">${d.domain}</div>
+                    </div>
+                    <div>
+                        <div class="info-section">
+                            <div class="info-title">🔒 SSL Certificate</div>
+                            <div class="info-row"><span class="label">Expires</span><span class="value">${d.ssl.expiry_date||'N/A'}</span></div>
+                            <div class="info-row"><span class="label">Status</span><span class="days-badge ${d.ssl.status}">${d.ssl.days_remaining!==null?d.ssl.days_remaining+' days':'Error'}</span></div>
+                        </div>
+                        <div class="info-section" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05);">
+                            <div class="info-title">🌐 Domain Registration</div>
+                            <div class="info-row"><span class="label">Expires</span><span class="value">${d.domain_registration.expiry_date||'N/A'}</span></div>
+                            <div class="info-row"><span class="label">Status</span><span class="days-badge ${d.domain_registration.status}">${d.domain_registration.days_remaining!==null?d.domain_registration.days_remaining+' days':'Error'}</span></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- تابع اصلی ---
+        async function initDashboard() {
+            try {
+                // درخواست سریع: دریافت لیست + وضعیت ادمین
+                const listRes = await fetch('/domains/list-only', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (listRes.ok) {
+                    const data = await listRes.json(); // data شامل domains و is_admin است
+                    
+                    // 🚀 نمایش فوری دکمه ادمین
+                    if (data.is_admin) {
+                        document.getElementById('adminLink').style.display = 'block';
+                    }
+
+                    // نمایش کارت‌های لودینگ
+                    renderLoadingCards(data.domains);
+                }
+                // درخواست کند: دریافت وضعیت SSL
+                refreshData(); 
+            } catch (e) { console.error(e); }
+        }
+
+        async function fetchSSLData() {
+            try {
+                const res = await fetch('/ssl-status', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.status === 401 || res.status === 403) { localStorage.removeItem('access_token'); window.location.href='/login'; return; }
+                return await res.json();
+            } catch (e) { console.error(e); }
+        }
+
+        async function triggerManualCheck() { 
+            const currentCards = document.querySelectorAll('.card');
+            currentCards.forEach(c => {
+                c.classList.remove('card-loaded');
+                c.classList.add('loading');
+                if(!c.querySelector('.blur-content')) {
+                    c.style.transition = 'all 0.3s';
+                    c.style.transform = 'scale(0.96)';
+                    c.style.filter = 'blur(4px)';
+                    c.style.opacity = '0.7';
+                }
+            });
+            try { await fetch('/check-now', { headers: { 'Authorization': `Bearer ${token}` } }); refreshData(); } catch(e){} 
+        }
+
+        async function refreshData() { 
+            const data = await fetchSSLData(); 
+            if(data){ 
+                updateCardsWithData(data); 
+                countdown = 60; 
+            } 
+        }
+
+        function toggleAutoRefresh() { autoRefreshEnabled=!autoRefreshEnabled; document.getElementById('autoRefreshText').textContent=autoRefreshEnabled?'⏸️ Auto':'▶️ Resume'; }
+        setInterval(()=>{ if(autoRefreshEnabled && --countdown<=0) refreshData(); }, 1000);
+
+        initTheme();
+        initDashboard();
+    </script>
+</body>
+</html>

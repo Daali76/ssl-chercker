@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | SSL Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; transition: all 0.3s ease; }
+
+        :root {
+            /* Light Mode */
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --input-bg: #ffffff;
+            --input-border: #e2e8f0;
+            --input-focus: #6366f1;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* سایه عمیق‌تر برای هاور */
+        }
+
+        body.dark-mode {
+            /* Dark Mode */
+            --bg-body: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --primary: #818cf8;
+            --primary-hover: #6366f1;
+            --input-bg: #0f172a;
+            --input-border: #334155;
+            --input-focus: #818cf8;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --shadow-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background Blobs (دایره‌های محو جایگزین نوار کج) */
+        .blob { position: absolute; border-radius: 50%; filter: blur(60px); z-index: 0; opacity: 0.6; }
+        .blob-1 { top: -10%; right: -5%; width: 300px; height: 300px; background: var(--primary); animation: float 8s infinite ease-in-out; }
+        .blob-2 { bottom: -10%; left: -5%; width: 350px; height: 350px; background: #a855f7; animation: float 10s infinite ease-in-out reverse; }
+
+        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(20px, 20px); } }
+
+        .container { position: relative; z-index: 1; width: 100%; max-width: 400px; padding: 20px; }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 48px 40px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            border: 1px solid transparent;
+            
+            /* --- تنظیمات حرکت کارت --- */
+            /* transform: حرکت نرم کارت */
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.3s ease;
+        }
+        
+        /* وقتی موس روی کارت می‌رود */
+        .card:hover {
+            transform: translateY(-10px) scale(1.01); /* کمی بالا می‌رود و خیلی کم بزرگ می‌شود */
+            box-shadow: var(--shadow-hover); /* سایه بیشتر می‌شود */
+        }
+
+        body.dark-mode .card { border-color: #334155; }
+
+        /* --- دکمه نایت مود --- */
+        .theme-toggle {
+            position: absolute; 
+            top: 20px; 
+            right: 20px;
+            width: 40px; /* سایز ثابت و کوچک */
+            height: 40px;
+            background: var(--card-bg); 
+            border: 1px solid var(--input-border); 
+            border-radius: 50%; /* کاملا گرد */
+            cursor: pointer;
+            font-size: 1.2rem; 
+            color: var(--text-main); 
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow);
+            z-index: 10;
+        }
+        
+        /* فقط کمی بزرگ شود، کج نشود */
+        .theme-toggle:hover { 
+            transform: scale(1.1); 
+            background: var(--bg-body);
+        }
+
+        .header { margin-bottom: 32px; }
+        .logo { 
+            font-size: 3rem; margin-bottom: 10px; display: inline-block; 
+            background: rgba(99, 102, 241, 0.1); padding: 15px; border-radius: 24px;
+        }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+        .subtitle { color: var(--text-sub); font-size: 0.9rem; }
+
+        /* Floating Label Inputs */
+        .form-group { position: relative; margin-bottom: 24px; text-align: left; }
+        
+        .form-group input {
+            width: 100%; padding: 16px 16px;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 12px;
+            font-size: 1rem; color: var(--text-main);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-group label {
+            position: absolute; left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub); font-size: 0.95rem;
+            pointer-events: none; transition: 0.2s ease all;
+            padding: 0 4px; background: transparent;
+        }
+
+        .form-group input:focus, .form-group input:not(:placeholder-shown) {
+            border-color: var(--input-focus);
+            background: var(--card-bg);
+        }
+
+        .form-group input:focus ~ label,
+        .form-group input:not(:placeholder-shown) ~ label {
+            top: 0; left: 12px; font-size: 0.75rem; font-weight: 700;
+            color: var(--primary); background: var(--card-bg);
+            padding: 2px 6px; border-radius: 4px;
+        }
+
+        button[type="submit"] {
+            width: 100%; padding: 16px;
+            background: var(--primary); color: white;
+            border: none; border-radius: 12px;
+            font-weight: 700; font-size: 1rem;
+            cursor: pointer; margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+        
+        button[type="submit"]:hover { 
+            background: var(--primary-hover); 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+        }
+        button[type="submit"]:active { transform: translateY(0); }
+        button[type="submit"]:disabled { opacity: 0.7; cursor: wait; }
+
+        .footer { margin-top: 30px; font-size: 0.8rem; color: var(--text-sub); }
+
+        .error-message {
+            color: #ef4444; font-size: 0.85rem; margin-top: 15px; 
+            display: none; animation: shake 0.3s; font-weight: 500;
+        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Toggle Theme">🌙</button>
+
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="logo">🔐</div>
+                <h1>Welcome Back</h1>
+                <p class="subtitle">Sign in to your dashboard</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="text" id="username" name="username" placeholder=" " required autocomplete="off">
+                    <label for="username">Username</label>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" id="password" name="password" placeholder=" " required>
+                    <label for="password">Password</label>
+                </div>
+
+                <button type="submit" id="submitBtn">Sign In</button>
+                <div class="error-message" id="error">Invalid credentials. Please try again.</div>
+            </form>
+
+            <div class="footer">
+                Secure Access System &copy; 2024
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Logic
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeBtn').textContent = '☀️';
+            }
+        }
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+        }
+        initTheme();
+
+        // Login Logic
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('error');
+            const btn = document.getElementById('submitBtn');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            errorDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = 'Verifying...';
+
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            try {
+                const response = await fetch('/auth/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error();
+
+                const data = await response.json();
+                localStorage.setItem('access_token', data.access_token);
+                
+                btn.textContent = 'Success!';
+                btn.style.background = '#10b981';
+                setTimeout(() => window.location.href = '/dashboard', 600);
+
+            } catch (error) {
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+                btn.style.background = '';
+            }
+        });
+    </script>
+</body>
+</html>
