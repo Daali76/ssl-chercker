@@ -14,7 +14,6 @@ services:
       - EXPIRY_THRESHOLD_DAYS=${EXPIRY_THRESHOLD_DAYS:-10}
       - CHECK_INTERVAL_HOURS=${CHECK_INTERVAL_HOURS:-24}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      # اتصال به سرویس db همین فایل
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - SECRET_KEY=${SECRET_KEY}
       - DEFAULT_ADMIN_USER=${DEFAULT_ADMIN_USER}
@@ -38,7 +37,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      # اگر می‌خواهید از بیرون داکر (مثلاً با PGAdmin) وصل شوید این خط را بگذارید
+ 
       - "5432:5432"
     networks:
       - ssl-checker-network

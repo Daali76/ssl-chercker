@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <title>Admin Settings | SSL Monitor</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <style>
-        /* استایل‌ها */
+        /* Core Variables & Reset */
         :root { --primary: #6366f1; --bg-body: #f3f4f6; --bg-glass: rgba(255,255,255,0.95); --border: #e5e7eb; --text: #1f2937; --danger: #ef4444; --sidebar-width: 260px; }
         body.dark-mode { --bg-body: #0f172a; --bg-glass: rgba(30,41,59,0.95); --border: #374151; --text: #f3f4f6; }
         * { margin:0; padding:0; box-sizing:border-box; transition: background 0.3s; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-body); color: var(--text); display: flex; min-height: 100vh; }
         
+        /* Layout */
         .sidebar { width: var(--sidebar-width); background: var(--bg-glass); border-right: 1px solid var(--border); padding: 2rem; position: fixed; height: 100vh; display: flex; flex-direction: column; z-index: 10; }
         .nav-links { list-style: none; flex: 1; }
         .nav-btn { width: 100%; text-align: left; padding: 12px; border-radius: 12px; background: transparent; border: none; color: var(--text); cursor: pointer; margin-bottom: 5px; font-weight: 500; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
@@ -22,24 +24,40 @@
         .tabs-container { display: flex; gap: 10px; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
         .tab-btn { background: transparent; border: none; padding: 12px 24px; cursor: pointer; color: var(--text); opacity: 0.6; font-weight: 600; border-bottom: 3px solid transparent; }
         .tab-btn.active { opacity: 1; color: var(--primary); border-bottom-color: var(--primary); }
+        
+        /* Components */
         .content-section { display: none; }
         .content-section.active { display: block; }
         .card { background: var(--bg-glass); padding: 2rem; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 2rem; }
-        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); margin-bottom: 10px; }
-        button { padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+        input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); margin-bottom: 10px; font-family: inherit; }
+        button { padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: transform 0.1s; }
+        button:active { transform: scale(0.98); }
         .btn-primary { background: var(--primary); color: white; width: 100%; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); }
+        
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; align-items: start; }
         
-        /* Modal */
+        /* Checkbox Wrapper */
+        .checkbox-wrapper { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
+        .checkbox-wrapper input { width: auto; margin: 0; }
+        .checkbox-wrapper label { margin: 0; font-size: 0.9rem; cursor: pointer; }
+
+        /* Modals & Advanced Settings */
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 999; display:none; justify-content: center; align-items: center; }
         .modal-overlay.show { display: flex; animation: fadeIn 0.2s; }
-        .modal { background: var(--bg-glass); padding: 2rem; border-radius: 16px; width: 700px; max-width: 95%; }
+        .modal { background: var(--bg-glass); padding: 2rem; border-radius: 16px; width: 700px; max-width: 95%; max-height: 90vh; overflow-y: auto; }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        
         .advanced-settings { display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.03); border-radius: 10px; border: 1px solid var(--border); }
         .advanced-settings.show { display: block; }
+
+        /* Platform Selection Styles */
+        .platform-select-container { margin-bottom: 20px; }
+        .platform-card { display: none; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-top: 10px; }
+        .platform-card.active { display: block; animation: fadeIn 0.3s; }
 
         @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; width: 100%; padding: 1rem; } .form-grid, .form-grid-3 { grid-template-columns: 1fr; } }
     </style>
@@ -52,6 +70,14 @@
             <input type="hidden" id="editDomainId">
             <h4 id="editDomainName" style="margin-bottom: 1rem; color: var(--primary);">example.com</h4>
             
+            <div style="background:rgba(0,0,0,0.03); padding:10px; border-radius:8px; margin-bottom:15px;">
+                <p style="font-size:0.8rem; font-weight:bold;">🔍 Monitoring Options</p>
+                <div style="display:flex; gap:20px;">
+                    <div class="checkbox-wrapper"><input type="checkbox" id="editMonSSL"><label for="editMonSSL">Check SSL</label></div>
+                    <div class="checkbox-wrapper"><input type="checkbox" id="editMonDom"><label for="editMonDom">Check Domain</label></div>
+                </div>
+            </div>
+
             <p style="font-size:0.8rem; margin-bottom:5px; font-weight:bold; opacity:0.7">🔒 SSL Thresholds (Days)</p>
             <div class="form-grid-3" style="margin-bottom: 20px;">
                 <div><label style="color:#ef4444;font-size:0.8rem">🚨 Red (&lt;)</label><input type="number" id="editSslDanger"></div>
@@ -66,6 +92,14 @@
                 <div><label style="color:#10b981;font-size:0.8rem">✅ Green (&gt;)</label><input type="number" id="editDomGood" oninput="syncInputs('editDomGood', 'editDomWarn')"></div>
             </div>
 
+            <div style="border-top: 1px solid var(--border); margin-top: 15px; padding-top: 15px;">
+                <p style="font-size:0.9rem; font-weight:bold;">🔔 Notification Preferences</p>
+                <div style="display:flex; gap:20px;">
+                    <div class="checkbox-wrapper"><input type="checkbox" id="editNotifyWarn"><label for="editNotifyWarn">Alert on <span style="color:#f59e0b">Warning</span></label></div>
+                    <div class="checkbox-wrapper"><input type="checkbox" id="editNotifyCrit"><label for="editNotifyCrit">Alert on <span style="color:#ef4444">Critical</span></label></div>
+                </div>
+            </div>
+
             <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
                 <button onclick="saveEditDomain()" class="btn-primary" style="background:#10b981">Save Changes</button>
                 <button onclick="closeEditModal()" style="background:#ef4444; color:white">Cancel</button>
@@ -75,12 +109,10 @@
 
     <nav class="sidebar">
         <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-bottom: 3rem;">🔒 Admin</div>
-        
         <ul class="nav-links">
             <li><button class="nav-btn" onclick="window.location.href='/dashboard'">Dashboard</button></li>
             <li><button class="nav-btn active">Admin Settings</button></li>
         </ul>
-
         <div class="sidebar-footer">
             <button class="nav-btn" onclick="toggleTheme()">🌙 <span id="themeText">Dark Mode</span></button>
             <button class="nav-btn" onclick="logout()" style="color: var(--danger);">🚪 Logout</button>
@@ -113,40 +145,60 @@
 
         <div id="view-domains" class="content-section">
             <div class="card">
-                <h3>Add Domain</h3>
+                <h3>Manage Domains</h3>
+                <div style="display:flex; gap:10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
+                    <button onclick="document.getElementById('importFile').click()" class="btn-primary" style="background:#3b82f6; width:auto;">📂 Import CSV</button>
+                    <input type="file" id="importFile" style="display:none" onchange="uploadCSV(this)">
+                    <button onclick="window.location.href='/domains/export?token='+localStorage.getItem('access_token')" class="btn-primary" style="background:#8b5cf6; width:auto;">⬇️ Export Report</button>
+                </div>
+
+                <h3>Add Single Domain</h3>
                 <form id="domainForm">
                     <input type="text" id="newDomain" placeholder="example.com" required>
                     
-                    <button type="button" onclick="document.getElementById('advSettings').classList.toggle('show')" style="background:transparent; color:var(--text); border:1px solid var(--border); width:100%; margin-bottom:10px; font-size:0.9rem; text-align:left;">⚙️ Custom Thresholds (Set Red/Yellow/Green)</button>
+                    <button type="button" onclick="document.getElementById('advSettings').classList.toggle('show')" style="background:transparent; color:var(--text); border:1px solid var(--border); width:100%; margin-bottom:10px; font-size:0.9rem; text-align:left;">⚙️ Advanced (Colors & Monitoring)</button>
                     
                     <div id="advSettings" class="advanced-settings">
-                        <p style="font-size:0.8rem; margin-bottom:10px; opacity:0.7;">Leave blank to use global defaults.</p>
-                        
-                        <div class="form-grid-3" style="margin-bottom: 15px;">
-                            <div><label style="color:#ef4444;font-size:0.8rem">🚨 SSL Red (&lt;)</label><input type="number" id="custSslDanger" class="gl-ssl-d"></div>
-                            <div><label style="color:#f59e0b;font-size:0.8rem">⚠️ SSL Yellow (&lt;)</label><input type="number" id="custSslWarn" class="gl-ssl-w" oninput="syncInputs('custSslWarn', 'custSslGood')"></div>
-                            <div><label style="color:#10b981;font-size:0.8rem">✅ SSL Green (&gt;)</label><input type="number" id="custSslGood" class="gl-ssl-w" oninput="syncInputs('custSslGood', 'custSslWarn')"></div>
+                        <div style="border-bottom: 1px solid var(--border); margin-bottom: 10px; padding-bottom: 10px;">
+                            <p style="font-size:0.8rem; font-weight:bold;">🔍 Monitoring Options</p>
+                            <div style="display:flex; gap:20px;">
+                                <div class="checkbox-wrapper"><input type="checkbox" id="addMonSSL" checked><label for="addMonSSL">Check SSL</label></div>
+                                <div class="checkbox-wrapper"><input type="checkbox" id="addMonDom" checked><label for="addMonDom">Check Domain</label></div>
+                            </div>
                         </div>
 
+                        <p style="font-size:0.8rem; margin-bottom:10px; opacity:0.7;">Leave colors blank to use global defaults.</p>
+                        <div class="form-grid-3" style="margin-bottom: 15px;">
+                            <div><label style="color:#ef4444;font-size:0.8rem">🚨 SSL Red</label><input type="number" id="custSslDanger" class="gl-ssl-d"></div>
+                            <div><label style="color:#f59e0b;font-size:0.8rem">⚠️ SSL Yellow</label><input type="number" id="custSslWarn" class="gl-ssl-w" oninput="syncInputs('custSslWarn', 'custSslGood')"></div>
+                            <div><label style="color:#10b981;font-size:0.8rem">✅ SSL Green</label><input type="number" id="custSslGood" class="gl-ssl-w" oninput="syncInputs('custSslGood', 'custSslWarn')"></div>
+                        </div>
                         <div class="form-grid-3">
-                            <div><label style="color:#ef4444;font-size:0.8rem">🚨 Domain Red (&lt;)</label><input type="number" id="custDomDanger" class="gl-dom-d"></div>
-                            <div><label style="color:#f59e0b;font-size:0.8rem">⚠️ Domain Yellow (&lt;)</label><input type="number" id="custDomWarn" class="gl-dom-w" oninput="syncInputs('custDomWarn', 'custDomGood')"></div>
-                            <div><label style="color:#10b981;font-size:0.8rem">✅ Domain Green (&gt;)</label><input type="number" id="custDomGood" class="gl-dom-w" oninput="syncInputs('custDomGood', 'custDomWarn')"></div>
+                            <div><label style="color:#ef4444;font-size:0.8rem">🚨 Domain Red</label><input type="number" id="custDomDanger" class="gl-dom-d"></div>
+                            <div><label style="color:#f59e0b;font-size:0.8rem">⚠️ Domain Yellow</label><input type="number" id="custDomWarn" class="gl-dom-w" oninput="syncInputs('custDomWarn', 'custDomGood')"></div>
+                            <div><label style="color:#10b981;font-size:0.8rem">✅ Domain Green</label><input type="number" id="custDomGood" class="gl-dom-w" oninput="syncInputs('custDomGood', 'custDomWarn')"></div>
+                        </div>
+                        
+                        <div style="border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px;">
+                            <p style="font-size:0.8rem; font-weight:bold;">🔔 Receive Alerts?</p>
+                            <div style="display:flex; gap:20px;">
+                                <div class="checkbox-wrapper"><input type="checkbox" id="addNotifyWarn" checked><label>On Warning</label></div>
+                                <div class="checkbox-wrapper"><input type="checkbox" id="addNotifyCrit" checked><label>On Critical</label></div>
+                            </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-primary">Add Domain</button>
+                    <button type="submit" class="btn-primary" style="margin-top:10px;">Add Domain</button>
                 </form>
             </div>
             
             <div class="card">
-                <table id="domainsTable"><thead><tr><th>ID</th><th>URL</th><th>Settings</th><th>Actions</th></tr></thead><tbody></tbody></table>
+                <table id="domainsTable"><thead><tr><th>ID</th><th>URL</th><th>Monitor</th><th>Actions</th></tr></thead><tbody></tbody></table>
             </div>
-
+            
             <div class="card" style="border-top: 4px solid var(--primary);">
                 <h3 style="margin-bottom: 1rem;">Global Domain Defaults</h3>
                 <p style="font-size:0.85rem; margin-bottom:15px; opacity:0.8">Apply to all domains unless customized.</p>
-                
                 <form id="defaultsForm">
                     <div class="form-grid-3" style="margin-bottom: 20px;">
                         <div><label style="color: #ef4444;">🚨 SSL Red Threshold</label><input type="number" id="sslDanger"></div>
@@ -165,59 +217,130 @@
 
         <div id="view-network" class="content-section">
             <div class="card">
-                <h3 style="margin-bottom: 1rem;">Network Settings</h3>
+                <h3 style="margin-bottom: 1.5rem;">Network & Notification Settings</h3>
                 <form id="networkForm">
-                    <div class="form-grid">
-                        <div><label>Telegram Token</label><input type="text" id="tgToken"></div>
-                        <div><label>Telegram Chat ID</label><input type="text" id="tgChat"></div>
-                        <div><label>Mattermost URL</label><input type="text" id="mmUrl"></div>
-                        <div><label>Proxy URL</label><input type="text" id="proxyUrl"></div>
+                    
+                    <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
+                        <h4 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">📢 Notification Channels</h4>
+                        
+                        <div class="platform-select-container">
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Select Platform to Configure:</label>
+                            <select id="platformSelect" onchange="showPlatformSettings()" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+                                <option value="none">-- Select Platform --</option>
+                                <option value="telegram">Telegram</option>
+                                <option value="mattermost">Mattermost</option>
+                                <option value="slack">Slack</option>
+                                <option value="other">Other (Custom Webhook)</option>
+                            </select>
+                        </div>
+
+                        <div id="telegramSettings" class="platform-card">
+                            <label style="font-weight: bold; color: #2481cc; display: flex; align-items: center; gap: 5px;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" width="20" alt="Telegram"> Telegram
+                            </label>
+                            <div class="form-grid" style="margin-top: 10px;">
+                                <div><label>Bot Token</label><input type="text" id="tgToken" placeholder="123456:ABC-DEF..."></div>
+                                <div><label>Chat ID</label><div style="display: flex; gap: 10px;"><input type="text" id="tgChat" placeholder="-100123456789"><button type="button" onclick="testTelegram()" style="background: #2481cc; color: white; width: auto; padding: 0 20px;">Test</button></div></div>
+                            </div>
+                        </div>
+
+                        <div id="mattermostSettings" class="platform-card">
+                            <label style="font-weight: bold; color: #1c1f2e; display: flex; align-items: center; gap: 5px;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/archive/9/97/20210620141915%21Mattermost_logo.svg" width="20" alt="Mattermost"> Mattermost
+                            </label>
+                            <div style="margin-top: 10px;">
+                                <label>Webhook URL (Domain or IP)</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="mmUrl" placeholder="http://host.docker.internal:8065/hooks/...">
+                                    <button type="button" onclick="testWebhook('mmUrl', 'mattermost')" style="background: #1c1f2e; color: white; width: auto; padding: 0 20px;">Test</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="slackSettings" class="platform-card">
+                            <label style="font-weight: bold; color: #4a154b; display: flex; align-items: center; gap: 5px;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg" width="20" alt="Slack"> Slack
+                            </label>
+                            <div style="margin-top: 10px;">
+                                <label>Webhook URL</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="slackUrl" placeholder="https://hooks.slack.com/services/...">
+                                    <button type="button" onclick="testWebhook('slackUrl', 'slack')" style="background: #4a154b; color: white; width: auto; padding: 0 20px;">Test</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="otherSettings" class="platform-card">
+                            <label style="font-weight: bold; color: var(--text-main); display: flex; align-items: center; gap: 5px;">🔌 Other (Custom Webhook)</label>
+                            <div style="margin-top: 10px;">
+                                <label>Webhook URL (Domain or IP)</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="customUrl" placeholder="http://10.0.0.50/api/webhook">
+                                    <button type="button" onclick="testWebhook('customUrl', 'custom')" style="background: var(--text-light); color: white; width: auto; padding: 0 20px;">Test</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary" style="background:#10b981; margin-top:1rem;">Save Network Settings</button>
+
+                    <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
+                        <h4 style="margin-bottom: 15px;">🌐 Connectivity & Interval</h4>
+                        <div class="form-grid">
+                            <div><label>Proxy Configuration</label><input type="text" id="proxyUrl" placeholder="Protocol://User:Pass@Host:Port"></div>
+                            <div><label>Background Check Interval (Hours)</label><input type="number" id="checkInterval" style="width: 100px;" placeholder="24"></div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+                        <h4 style="margin-bottom: 10px;">💬 Notification Message Templates</h4>
+                        <p style="font-size:0.8rem; color:var(--text-light); margin-bottom:15px;">Available placeholders: <b>{url}</b>, <b>{days}</b></p>
+                        
+                        <div class="form-grid">
+                            <div><label>⚠️ SSL Warning</label><textarea id="msgSslWarn" rows="2"></textarea></div>
+                            <div><label>🚨 SSL Critical</label><textarea id="msgSslCrit" rows="2"></textarea></div>
+                            <div><label>⏳ Domain Warning</label><textarea id="msgDomWarn" rows="2"></textarea></div>
+                            <div><label>🔥 Domain Critical</label><textarea id="msgDomCrit" rows="2"></textarea></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 2rem;">
+                        <button type="submit" class="btn-primary" style="background:#10b981; padding: 15px 30px; font-size: 1rem;">Save All Configuration</button>
+                        <button type="button" onclick="simulateAlert()" style="background:#ef4444; color:white; border:none; border-radius:8px; padding: 0 30px; font-weight:600; cursor:pointer;">🚨 Simulate Global Alert</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
         const token = localStorage.getItem('access_token');
         if (!token) window.location.href = '/login';
         
-        // --- Logout & Theme ---
-        function logout() { 
-            if(confirm("Are you sure you want to logout?")){ 
-                localStorage.removeItem('access_token'); 
-                window.location.href='/login'; 
-            } 
+        function showToast(msg, type='success') {
+            let bg = "#10b981"; if(type==='error') bg = "#ef4444"; if(type==='info') bg = "#3b82f6";
+            Toastify({ text: msg, duration: 4000, gravity: "top", position: "right", style: { background: bg, borderRadius: "10px", fontWeight: "500", maxWidth: "400px" } }).showToast();
         }
 
-        function initTheme() {
-            if (localStorage.getItem('theme') === 'dark') { 
-                document.body.classList.add('dark-mode'); 
-                const themeText = document.getElementById('themeText');
-                if(themeText) themeText.textContent='Light Mode'; 
-            }
-        }
-        
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            const themeText = document.getElementById('themeText');
-            if(themeText) themeText.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-        }
-        
+        function logout() { if(confirm("Are you sure you want to logout?")){ localStorage.removeItem('access_token'); window.location.href='/login'; } }
+        function initTheme() { if (localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark-mode'); const themeText = document.getElementById('themeText'); if(themeText) themeText.textContent='Light Mode'; } }
+        function toggleTheme() { document.body.classList.toggle('dark-mode'); const isDark = document.body.classList.contains('dark-mode'); localStorage.setItem('theme', isDark ? 'dark' : 'light'); const themeText = document.getElementById('themeText'); if(themeText) themeText.textContent = isDark ? 'Light Mode' : 'Dark Mode'; }
         initTheme();
 
-        let allDomains = []; 
-        let globalSettings = {}; 
+        let allDomains = []; let globalSettings = {}; 
 
+        function showPlatformSettings() {
+            document.querySelectorAll('.platform-card').forEach(card => card.classList.remove('active'));
+            const selected = document.getElementById('platformSelect').value;
+            if (selected !== 'none') document.getElementById(`${selected}Settings`).classList.add('active');
+        }
+
+        // Load Initial Data
         Promise.all([
             fetch('/users/', { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch('/settings', { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch('/domains/', { headers: { 'Authorization': `Bearer ${token}` } })
         ]).then(async ([resUsers, resSettings, resDomains]) => {
-            if (resUsers.status === 403) return alert('Access Denied');
+            if (resUsers.status === 403) return showToast('Access Denied', 'error');
             if (resUsers.status === 401) window.location.href = '/login';
 
             renderUsers(await resUsers.json());
@@ -239,107 +362,8 @@
             document.getElementById(`view-${tabName}`).classList.add('active');
             document.getElementById(`btn-${tabName}`).classList.add('active');
             history.pushState(null, '', `?tab=${tabName}`);
-
-            if (tabName === 'domains') {
-                const resSettings = await fetch('/settings', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (resSettings.ok) {
-                    globalSettings = await resSettings.json();
-                    fillSettings(globalSettings);
-                    updatePlaceholders();
-                }
-            }
+            if (tabName === 'domains') { const resSettings = await fetch('/settings', { headers: { 'Authorization': `Bearer ${token}` } }); if (resSettings.ok) { globalSettings = await resSettings.json(); fillSettings(globalSettings); updatePlaceholders(); } }
         }
-
-        function syncInputs(sourceId, targetId) {
-            const val = document.getElementById(sourceId).value;
-            document.getElementById(targetId).value = val;
-        }
-
-        function updatePlaceholders() {
-            const s = globalSettings;
-            if(!s) return;
-            document.querySelectorAll('.gl-ssl-d').forEach(el => el.placeholder = `Global: ${s.ssl_danger_days || 7}`);
-            document.querySelectorAll('.gl-ssl-w').forEach(el => el.placeholder = `Global: ${s.ssl_warning_days || 30}`);
-            document.querySelectorAll('.gl-dom-d').forEach(el => el.placeholder = `Global: ${s.domain_danger_days || 14}`);
-            document.querySelectorAll('.gl-dom-w').forEach(el => el.placeholder = `Global: ${s.domain_warning_days || 60}`);
-        }
-
-        function renderDomains(domains) {
-            allDomains = domains;
-            document.querySelector('#domainsTable tbody').innerHTML = domains.map(d => `
-                <tr>
-                    <td>#${d.id}</td>
-                    <td><strong>${d.url}</strong></td>
-                    <td style="font-size:0.8rem;">
-                        ${d.custom_ssl_warning 
-                            ? '<span style="background:rgba(99,102,241,0.1); color:var(--primary); padding:2px 6px; border-radius:4px;">Custom</span>' 
-                            : '<span style="opacity:0.5">Global</span>'}
-                    </td>
-                    <td>
-                        <button onclick="openEditModal(${d.id})" style="background:#3b82f6;color:white;padding:5px 10px;border-radius:5px; margin-right:5px;">Edit</button>
-                        <button onclick="deleteDomain(${d.id})" style="background:#ef4444;color:white;padding:5px 10px;border-radius:5px;">Del</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function openEditModal(id) {
-            const domain = allDomains.find(d => d.id === id);
-            if(!domain) return;
-            document.getElementById('editDomainId').value = id;
-            document.getElementById('editDomainName').textContent = domain.url;
-            
-            document.getElementById('editSslWarn').value = domain.custom_ssl_warning || '';
-            document.getElementById('editSslGood').value = domain.custom_ssl_warning || '';
-            document.getElementById('editSslDanger').value = domain.custom_ssl_danger || '';
-            
-            document.getElementById('editDomWarn').value = domain.custom_domain_warning || '';
-            document.getElementById('editDomGood').value = domain.custom_domain_warning || '';
-            document.getElementById('editDomDanger').value = domain.custom_domain_danger || '';
-            
-            const s = globalSettings;
-            document.getElementById('editSslWarn').placeholder = `Global: ${s.ssl_warning_days}`;
-            document.getElementById('editSslGood').placeholder = `Global: ${s.ssl_warning_days}`;
-            document.getElementById('editSslDanger').placeholder = `Global: ${s.ssl_danger_days}`;
-            document.getElementById('editDomWarn').placeholder = `Global: ${s.domain_warning_days}`;
-            document.getElementById('editDomGood').placeholder = `Global: ${s.domain_warning_days}`;
-            document.getElementById('editDomDanger').placeholder = `Global: ${s.domain_danger_days}`;
-
-            document.getElementById('editModal').classList.add('show');
-        }
-
-        function closeEditModal() { document.getElementById('editModal').classList.remove('show'); }
-
-        async function saveEditDomain() {
-            const id = document.getElementById('editDomainId').value;
-            const payload = {
-                ssl_warning: document.getElementById('editSslWarn').value ? parseInt(document.getElementById('editSslWarn').value) : null,
-                ssl_danger: document.getElementById('editSslDanger').value ? parseInt(document.getElementById('editSslDanger').value) : null,
-                domain_warning: document.getElementById('editDomWarn').value ? parseInt(document.getElementById('editDomWarn').value) : null,
-                domain_danger: document.getElementById('editDomDanger').value ? parseInt(document.getElementById('editDomDanger').value) : null
-            };
-            const res = await fetch(`/domains/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
-            if(res.ok) { closeEditModal(); renderDomains(await (await fetch('/domains/', { headers: { 'Authorization': `Bearer ${token}` } })).json()); } else { alert('Error updating'); }
-        }
-
-        document.getElementById('domainForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                url: document.getElementById('newDomain').value,
-                ssl_warning: document.getElementById('custSslWarn').value ? parseInt(document.getElementById('custSslWarn').value) : null,
-                ssl_danger: document.getElementById('custSslDanger').value ? parseInt(document.getElementById('custSslDanger').value) : null,
-                domain_warning: document.getElementById('custDomWarn').value ? parseInt(document.getElementById('custDomWarn').value) : null,
-                domain_danger: document.getElementById('custDomDanger').value ? parseInt(document.getElementById('custDomDanger').value) : null
-            };
-            const res = await fetch('/domains/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
-            if(res.ok) { e.target.reset(); document.getElementById('advSettings').classList.remove('show'); renderDomains(await (await fetch('/domains/', { headers: { 'Authorization': `Bearer ${token}` } })).json()); } else alert('Error');
-        });
-
-        async function deleteDomain(id) { if(!confirm('Delete?')) return; await fetch(`/domains/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); renderDomains(await (await fetch('/domains/', { headers: { 'Authorization': `Bearer ${token}` } })).json()); }
-
-        function renderUsers(users) { document.querySelector('#usersTable tbody').innerHTML = users.map(u => `<tr><td>${u.username}</td><td>${u.role}</td><td>${u.disabled?'Disabled':'Active'}</td><td><button onclick="actionUser(${u.id}, 'toggle-status')" style="background:#f59e0b;padding:5px;">Status</button><button onclick="actionUser(${u.id}, 'delete')" style="background:#ef4444;padding:5px;color:white">Del</button></td></tr>`).join(''); }
-        async function actionUser(id, type) { let url = `/users/${id}` + (type === 'toggle-status' ? '/toggle-status' : ''); let method = type === 'delete' ? 'DELETE' : 'PUT'; await fetch(url, { method, headers: { 'Authorization': `Bearer ${token}` } }); renderUsers(await (await fetch('/users/', { headers: { 'Authorization': `Bearer ${token}` } })).json()); }
-        document.getElementById('userForm').addEventListener('submit', async (e) => { e.preventDefault(); const data = { username: document.getElementById('newUsername').value, password: document.getElementById('newPassword').value, role: document.getElementById('newRole').value }; await fetch('/users/create', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) }); e.target.reset(); renderUsers(await (await fetch('/users/', { headers: { 'Authorization': `Bearer ${token}` } })).json()); });
 
         function fillSettings(data) {
             if(!data) return;
@@ -347,27 +371,169 @@
             document.getElementById('tgChat').value = data.telegram_chat_id||'';
             document.getElementById('proxyUrl').value = data.proxy_url||'';
             document.getElementById('mmUrl').value = data.mattermost_url||'';
+            document.getElementById('slackUrl').value = data.slack_webhook_url||'';
+            document.getElementById('customUrl').value = data.custom_webhook_url||'';
+            document.getElementById('checkInterval').value = data.check_interval_hours||24;
+            
+            document.getElementById('msgSslWarn').value = data.msg_ssl_warning || "⚠️ **SSL Warning**: {url}\nExpires in: {days} days";
+            document.getElementById('msgSslCrit').value = data.msg_ssl_danger || "🚨 **SSL CRITICAL**: {url}\nExpires in: {days} days";
+            document.getElementById('msgDomWarn').value = data.msg_dom_warning || "⏳ **Domain Warning**: {url}\nExpires in: {days} days";
+            document.getElementById('msgDomCrit').value = data.msg_dom_danger || "🔥 **Domain CRITICAL**: {url}\nExpires in: {days} days";
+            
             document.getElementById('sslWarn').value = data.ssl_warning_days || 30;
-            document.getElementById('sslGood').value = data.ssl_warning_days || 30; 
+            document.getElementById('sslGood').value = data.ssl_warning_days || 30;
             document.getElementById('sslDanger').value = data.ssl_danger_days || 7;
             document.getElementById('domWarn').value = data.domain_warning_days || 60;
             document.getElementById('domGood').value = data.domain_warning_days || 60;
             document.getElementById('domDanger').value = data.domain_danger_days || 14;
+
+            if(data.telegram_bot_token) { document.getElementById('platformSelect').value = 'telegram'; }
+            else if(data.mattermost_url) { document.getElementById('platformSelect').value = 'mattermost'; }
+            else if(data.slack_webhook_url) { document.getElementById('platformSelect').value = 'slack'; }
+            else if(data.custom_webhook_url) { document.getElementById('platformSelect').value = 'other'; }
+            else { document.getElementById('platformSelect').value = 'none'; }
+            showPlatformSettings();
         }
 
         document.getElementById('networkForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const data = { telegram_bot_token: document.getElementById('tgToken').value, telegram_chat_id: document.getElementById('tgChat').value, proxy_url: document.getElementById('proxyUrl').value, mattermost_url: document.getElementById('mmUrl').value };
+            const data = {
+                telegram_bot_token: document.getElementById('tgToken').value,
+                telegram_chat_id: document.getElementById('tgChat').value,
+                proxy_url: document.getElementById('proxyUrl').value,
+                mattermost_url: document.getElementById('mmUrl').value,
+                slack_webhook_url: document.getElementById('slackUrl').value,
+                custom_webhook_url: document.getElementById('customUrl').value,
+                check_interval_hours: parseInt(document.getElementById('checkInterval').value),
+                
+                msg_ssl_warning: document.getElementById('msgSslWarn').value,
+                msg_ssl_danger: document.getElementById('msgSslCrit').value,
+                msg_dom_warning: document.getElementById('msgDomWarn').value,
+                msg_dom_danger: document.getElementById('msgDomCrit').value
+            };
             const res = await fetch('/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
-            if(res.ok) alert('Network Settings Saved!');
+            if(res.ok) showToast('Network Settings Saved!');
         });
 
-        document.getElementById('defaultsForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = { ssl_warning_days: parseInt(document.getElementById('sslWarn').value), ssl_danger_days: parseInt(document.getElementById('sslDanger').value), domain_warning_days: parseInt(document.getElementById('domWarn').value), domain_danger_days: parseInt(document.getElementById('domDanger').value) };
-            const res = await fetch('/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) });
-            if(res.ok) { alert('Global Defaults Saved!'); globalSettings = await (await fetch('/settings', { headers: { 'Authorization': `Bearer ${token}` } })).json(); updatePlaceholders(); }
+        async function testTelegram() {
+            const botToken = document.getElementById('tgToken').value;
+            const chatId = document.getElementById('tgChat').value;
+            if(!botToken || !chatId) return showToast('Enter Telegram Token & Chat ID', 'error');
+            showToast('Sending to Telegram...', 'info');
+            try {
+                const res = await fetch('/settings/test-telegram', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ token: botToken, chat_id: chatId }) });
+                if(res.ok) showToast('✅ Telegram OK'); else showToast('❌ Failed to send', 'error');
+            } catch(e) { showToast('Connection Error', 'error'); }
+        }
+
+        async function testWebhook(inputId, platform) {
+            let url = document.getElementById(inputId).value.trim();
+            if(!url) return showToast('Enter Webhook URL', 'error');
+            if(!url.startsWith('http')) return showToast('URL must start with http:// or https://', 'error');
+
+            if(url.includes('127.0.0.1') || url.includes('localhost')) {
+                showToast('⚠️ If in Docker, use host.docker.internal instead of localhost', 'info');
+            }
+
+            showToast(`Sending to ${platform}...`, 'info');
+            try {
+                const res = await fetch(`/settings/test-webhook?platform=${platform}`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                    // FIX: Sending 'webhook_url' as required by server
+                    body: JSON.stringify({ webhook_url: url }) 
+                });
+                
+                if(res.ok) {
+                    showToast(`✅ ${platform} OK`); 
+                } else {
+                    const err = await res.json();
+                    let msg = `Status ${res.status}`;
+                    if(err.detail) {
+                        if(Array.isArray(err.detail)) msg = err.detail.map(e => `${e.loc[e.loc.length-1]}: ${e.msg}`).join(', ');
+                        else msg = err.detail;
+                    }
+                    showToast(`❌ Failed: ${msg}`, 'error');
+                }
+            } catch(e) { 
+                console.error(e);
+                showToast('Connection Error. Use host.docker.internal for local services.', 'error'); 
+            }
+        }
+        
+        async function simulateAlert() {
+            showToast('Sending Alert Simulation...');
+            try { await fetch('/settings/test-alert', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); showToast('Alert Sent!'); } catch(e) { showToast('Error', 'error'); }
+        }
+        
+        function syncInputs(sourceId, targetId) { const val = document.getElementById(sourceId).value; document.getElementById(targetId).value = val; }
+        function updatePlaceholders() { const s = globalSettings; if(!s) return; document.querySelectorAll('.gl-ssl-d').forEach(el => el.placeholder = `Global: ${s.ssl_danger_days || 7}`); document.querySelectorAll('.gl-ssl-w').forEach(el => el.placeholder = `Global: ${s.ssl_warning_days || 30}`); document.querySelectorAll('.gl-dom-d').forEach(el => el.placeholder = `Global: ${s.domain_danger_days || 14}`); document.querySelectorAll('.gl-dom-w').forEach(el => el.placeholder = `Global: ${s.domain_warning_days || 60}`); }
+
+        function renderDomains(domains) { 
+            allDomains = domains; 
+            document.querySelector('#domainsTable tbody').innerHTML = domains.map(d => `
+                <tr>
+                    <td>#${d.id}</td>
+                    <td><strong>${d.url}</strong></td>
+                    <td style="font-size:0.8rem;">${d.monitor_ssl ? '🔒 SSL' : ''} ${d.monitor_domain ? '🌐 Dom' : ''}</td>
+                    <td><button onclick="openEditModal(${d.id})" style="background:#3b82f6;color:white;padding:5px 10px;border-radius:5px;">Edit</button><button onclick="deleteDomain(${d.id})" style="background:#ef4444;color:white;padding:5px 10px;border-radius:5px;">Del</button></td>
+                </tr>
+            `).join(''); 
+        }
+        
+        function openEditModal(id) { 
+            const d = allDomains.find(x => x.id === id); if(!d) return; 
+            document.getElementById('editDomainId').value = id; document.getElementById('editDomainName').textContent = d.url; 
+            document.getElementById('editSslWarn').value = d.custom_ssl_warning || ''; document.getElementById('editSslGood').value = d.custom_ssl_warning || ''; document.getElementById('editSslDanger').value = d.custom_ssl_danger || ''; 
+            document.getElementById('editDomWarn').value = d.custom_domain_warning || ''; document.getElementById('editDomGood').value = d.custom_domain_warning || ''; document.getElementById('editDomDanger').value = d.custom_domain_danger || '';
+            document.getElementById('editMonSSL').checked = d.monitor_ssl; document.getElementById('editMonDom').checked = d.monitor_domain;
+            document.getElementById('editNotifyWarn').checked = d.notify_on_warning; document.getElementById('editNotifyCrit').checked = d.notify_on_critical;
+
+            const s = globalSettings;
+            document.getElementById('editSslWarn').placeholder = `Global: ${s.ssl_warning_days}`; document.getElementById('editSslGood').placeholder = `Global: ${s.ssl_warning_days}`; document.getElementById('editSslDanger').placeholder = `Global: ${s.ssl_danger_days}`;
+            document.getElementById('editDomWarn').placeholder = `Global: ${s.domain_warning_days}`; document.getElementById('editDomGood').placeholder = `Global: ${s.domain_warning_days}`; document.getElementById('editDomDanger').placeholder = `Global: ${s.domain_danger_days}`;
+            document.getElementById('editModal').classList.add('show'); 
+        }
+        
+        function closeEditModal() { document.getElementById('editModal').classList.remove('show'); }
+
+        async function saveEditDomain() { 
+            const id = document.getElementById('editDomainId').value; 
+            const payload = { 
+                ssl_warning: document.getElementById('editSslWarn').value ? parseInt(document.getElementById('editSslWarn').value) : null, 
+                ssl_danger: document.getElementById('editSslDanger').value ? parseInt(document.getElementById('editSslDanger').value) : null, 
+                domain_warning: document.getElementById('editDomWarn').value ? parseInt(document.getElementById('editDomWarn').value) : null, 
+                domain_danger: document.getElementById('editDomDanger').value ? parseInt(document.getElementById('editDomDanger').value) : null,
+                monitor_ssl: document.getElementById('editMonSSL').checked, monitor_domain: document.getElementById('editMonDom').checked,
+                notify_warning: document.getElementById('editNotifyWarn').checked, notify_critical: document.getElementById('editNotifyCrit').checked
+            }; 
+            const res = await fetch(`/domains/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) }); 
+            if(res.ok) { closeEditModal(); showToast('Domain Updated'); const list = await fetch('/domains/', { headers: { 'Authorization': `Bearer ${token}` } }); renderDomains(await list.json()); } else { showToast('Error', 'error'); } 
+        }
+
+        document.getElementById('domainForm').addEventListener('submit', async (e) => { 
+            e.preventDefault(); 
+            const payload = { 
+                url: document.getElementById('newDomain').value, 
+                ssl_warning: document.getElementById('custSslWarn').value ? parseInt(document.getElementById('custSslWarn').value) : null, 
+                ssl_danger: document.getElementById('custSslDanger').value ? parseInt(document.getElementById('custSslDanger').value) : null, 
+                domain_warning: document.getElementById('custDomWarn').value ? parseInt(document.getElementById('custDomWarn').value) : null, 
+                domain_danger: document.getElementById('custDomDanger').value ? parseInt(document.getElementById('custDomDanger').value) : null, 
+                monitor_ssl: document.getElementById('addMonSSL').checked, monitor_domain: document.getElementById('addMonDom').checked, 
+                notify_warning: document.getElementById('addNotifyWarn').checked, notify_critical: document.getElementById('addNotifyCrit').checked 
+            }; 
+            const res = await fetch('/domains/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) }); 
+            if(res.ok) { e.target.reset(); document.getElementById('advSettings').classList.remove('show'); showToast('Domain Added'); const list = await fetch('/domains/', { headers: { 'Authorization': `Bearer ${token}` } }); renderDomains(await list.json()); } else showToast('Error', 'error'); 
         });
+
+        async function deleteDomain(id) { if(!confirm('Delete?')) return; await fetch(`/domains/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); showToast('Deleted'); renderDomains(await (await fetch('/domains/', { headers: { 'Authorization': `Bearer ${token}` } })).json()); }
+        function uploadCSV(input) { if (!input.files || !input.files[0]) return; const formData = new FormData(); formData.append('file', input.files[0]); showToast('Uploading...', 'info'); fetch('/domains/import', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData }).then(res => res.json().then(data => { if (res.ok) { showToast(`Imported: ${data.added}, Skipped: ${data.skipped}`); fetch('/domains/', { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()).then(renderDomains); } else showToast('Import Failed', 'error'); })).catch(() => showToast('Upload Error', 'error')); input.value = ''; }
+
+        // Users & Settings
+        function renderUsers(users) { document.querySelector('#usersTable tbody').innerHTML = users.map(u => `<tr><td>${u.username}</td><td>${u.role}</td><td>${u.disabled?'Disabled':'Active'}</td><td><button onclick="actionUser(${u.id}, 'toggle-status')" style="background:#f59e0b;padding:5px;">Status</button><button onclick="actionUser(${u.id}, 'delete')" style="background:#ef4444;padding:5px;color:white">Del</button></td></tr>`).join(''); }
+        async function actionUser(id, type) { let url = `/users/${id}` + (type === 'toggle-status' ? '/toggle-status' : ''); let method = type === 'delete' ? 'DELETE' : 'PUT'; await fetch(url, { method, headers: { 'Authorization': `Bearer ${token}` } }); showToast('User Updated'); renderUsers(await (await fetch('/users/', { headers: { 'Authorization': `Bearer ${token}` } })).json()); }
+        document.getElementById('userForm').addEventListener('submit', async (e) => { e.preventDefault(); const data = { username: document.getElementById('newUsername').value, password: document.getElementById('newPassword').value, role: document.getElementById('newRole').value }; await fetch('/users/create', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) }); e.target.reset(); showToast('User Created'); renderUsers(await (await fetch('/users/', { headers: { 'Authorization': `Bearer ${token}` } })).json()); });
+        document.getElementById('defaultsForm').addEventListener('submit', async (e) => { e.preventDefault(); const data = { ssl_warning_days: parseInt(document.getElementById('sslWarn').value), ssl_danger_days: parseInt(document.getElementById('sslDanger').value), domain_warning_days: parseInt(document.getElementById('domWarn').value), domain_danger_days: parseInt(document.getElementById('domDanger').value) }; const res = await fetch('/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(data) }); if(res.ok) { showToast('Global Defaults Saved!'); globalSettings = await (await fetch('/settings', { headers: { 'Authorization': `Bearer ${token}` } })).json(); updatePlaceholders(); } });
     </script>
 </body>
 </html>

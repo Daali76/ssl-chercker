@@ -11,3 +11,5 @@ SQLAlchemy==2.0.23
 psycopg2-binary==2.9.9
 python-whois==0.8.0
 tldextract==5.1.1
+psycopg2-binary
+python-dotenv

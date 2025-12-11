@@ -7,7 +7,7 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     
     # Database
-    DATABASE_URL: str = os.environ.get("DATABASE_URL", "sqlite:///./data/users.db")
+    DATABASE_URL: str = os.environ.get("DATABASE_URL", "postgresql://sslchecker:secure_db_password@localhost:5432/sslchecker_db")
     
     # App Config
     EXPIRY_THRESHOLD_DAYS: int = int(os.environ.get("EXPIRY_THRESHOLD_DAYS", 10))

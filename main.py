@@ -17,30 +17,25 @@ logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"), format='%(asctime
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
-# Middleware
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
-
-# Static Files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Routers
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(users.router, prefix="/users", tags=["Users"])
 app.include_router(domains.router, prefix="/domains", tags=["Domains"])
 app.include_router(dashboard.router, tags=["Dashboard"])
 
-# Scheduler
 scheduler = AsyncIOScheduler()
 
 @app.on_event("startup")
 async def startup_event():
-    # Create Tables
     Base.metadata.create_all(bind=engine)
     
-    # Create Initial Data
     db = SessionLocal()
-    if not db.query(AppSettings).first():
-        db.add(AppSettings(id=1))
+    app_settings = db.query(AppSettings).first()
+    if not app_settings:
+        app_settings = AppSettings(id=1, check_interval_hours=24) 
+        db.add(app_settings)
         db.commit()
     
     if not db.query(User).filter(User.username == settings.DEFAULT_ADMIN_USER).first():
@@ -51,12 +46,17 @@ async def startup_event():
         )
         db.add(user)
         db.commit()
-    db.close()
-
-    # Start Scheduler
-    scheduler.add_job(check_job, 'interval', hours=settings.CHECK_INTERVAL_HOURS)
+    
+    interval = app_settings.check_interval_hours if app_settings.check_interval_hours else 24
+    logging.info(f"Scheduler started with interval: {interval} hours")
+    
+    scheduler.add_job(check_job, 'interval', hours=interval)
     scheduler.start()
+    
+    db.close()
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+ 
