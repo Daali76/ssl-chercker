@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ssl-certificate-checker
-    restart: unless-stopped
+    restart: always
+    # restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
@@ -22,6 +23,7 @@ services:
       db:
         condition: service_healthy
     volumes:
+      - ./:/app
       - ./logs:/app/logs
     networks:
       - ssl-checker-network

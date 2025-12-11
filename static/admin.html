@@ -55,29 +55,50 @@
         .advanced-settings.show { display: block; }
 
         /* Platform Selection Styles */
-        .platform-select-container { margin-bottom: 20px; }
-        .platform-card { display: none; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-top: 10px; }
-        .platform-card.active { display: block; animation: fadeIn 0.3s; }
+        .platform-select-container {
+            margin-bottom: 20px;
+        }
+        .platform-card {
+            display: none; /* Hidden by default */
+            background: rgba(0,0,0,0.02); 
+            padding: 15px; 
+            border-radius: 10px; 
+            border: 1px solid var(--border);
+            margin-top: 10px;
+        }
+        .platform-card.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
 
         @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; width: 100%; padding: 1rem; } .form-grid, .form-grid-3 { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body style="display: none;" id="body">
     
+    <!-- Edit Modal -->
     <div id="editModal" class="modal-overlay">
         <div class="modal">
             <h3 style="margin-bottom: 1.5rem;">Edit Domain Settings</h3>
             <input type="hidden" id="editDomainId">
             <h4 id="editDomainName" style="margin-bottom: 1rem; color: var(--primary);">example.com</h4>
             
+            <!-- Monitoring Options -->
             <div style="background:rgba(0,0,0,0.03); padding:10px; border-radius:8px; margin-bottom:15px;">
                 <p style="font-size:0.8rem; font-weight:bold;">🔍 Monitoring Options</p>
                 <div style="display:flex; gap:20px;">
-                    <div class="checkbox-wrapper"><input type="checkbox" id="editMonSSL"><label for="editMonSSL">Check SSL</label></div>
-                    <div class="checkbox-wrapper"><input type="checkbox" id="editMonDom"><label for="editMonDom">Check Domain</label></div>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="editMonSSL">
+                        <label for="editMonSSL">Check SSL</label>
+                    </div>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="editMonDom">
+                        <label for="editMonDom">Check Domain</label>
+                    </div>
                 </div>
             </div>
 
+            <!-- SSL Thresholds -->
             <p style="font-size:0.8rem; margin-bottom:5px; font-weight:bold; opacity:0.7">🔒 SSL Thresholds (Days)</p>
             <div class="form-grid-3" style="margin-bottom: 20px;">
                 <div><label style="color:#ef4444;font-size:0.8rem">🚨 Red (&lt;)</label><input type="number" id="editSslDanger"></div>
@@ -85,6 +106,7 @@
                 <div><label style="color:#10b981;font-size:0.8rem">✅ Green (&gt;)</label><input type="number" id="editSslGood" oninput="syncInputs('editSslGood', 'editSslWarn')"></div>
             </div>
 
+            <!-- Domain Thresholds -->
             <p style="font-size:0.8rem; margin-bottom:5px; font-weight:bold; opacity:0.7">🌐 Domain Thresholds (Days)</p>
             <div class="form-grid-3">
                 <div><label style="color:#ef4444;font-size:0.8rem">🚨 Red (&lt;)</label><input type="number" id="editDomDanger"></div>
@@ -92,11 +114,18 @@
                 <div><label style="color:#10b981;font-size:0.8rem">✅ Green (&gt;)</label><input type="number" id="editDomGood" oninput="syncInputs('editDomGood', 'editDomWarn')"></div>
             </div>
 
+            <!-- Notification Settings -->
             <div style="border-top: 1px solid var(--border); margin-top: 15px; padding-top: 15px;">
                 <p style="font-size:0.9rem; font-weight:bold;">🔔 Notification Preferences</p>
                 <div style="display:flex; gap:20px;">
-                    <div class="checkbox-wrapper"><input type="checkbox" id="editNotifyWarn"><label for="editNotifyWarn">Alert on <span style="color:#f59e0b">Warning</span></label></div>
-                    <div class="checkbox-wrapper"><input type="checkbox" id="editNotifyCrit"><label for="editNotifyCrit">Alert on <span style="color:#ef4444">Critical</span></label></div>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="editNotifyWarn">
+                        <label for="editNotifyWarn">Alert on <span style="color:#f59e0b">Warning</span></label>
+                    </div>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="editNotifyCrit">
+                        <label for="editNotifyCrit">Alert on <span style="color:#ef4444">Critical</span></label>
+                    </div>
                 </div>
             </div>
 
@@ -127,6 +156,7 @@
             <button class="tab-btn" onclick="switchTab('network')" id="btn-network">Network Settings</button>
         </div>
 
+        <!-- USERS TAB -->
         <div id="view-users" class="content-section active">
             <div class="card">
                 <h3>Create User</h3>
@@ -143,6 +173,7 @@
             </div>
         </div>
 
+        <!-- DOMAINS TAB -->
         <div id="view-domains" class="content-section">
             <div class="card">
                 <h3>Manage Domains</h3>
@@ -159,6 +190,7 @@
                     <button type="button" onclick="document.getElementById('advSettings').classList.toggle('show')" style="background:transparent; color:var(--text); border:1px solid var(--border); width:100%; margin-bottom:10px; font-size:0.9rem; text-align:left;">⚙️ Advanced (Colors & Monitoring)</button>
                     
                     <div id="advSettings" class="advanced-settings">
+                        <!-- Monitoring Options -->
                         <div style="border-bottom: 1px solid var(--border); margin-bottom: 10px; padding-bottom: 10px;">
                             <p style="font-size:0.8rem; font-weight:bold;">🔍 Monitoring Options</p>
                             <div style="display:flex; gap:20px;">
@@ -196,6 +228,7 @@
                 <table id="domainsTable"><thead><tr><th>ID</th><th>URL</th><th>Monitor</th><th>Actions</th></tr></thead><tbody></tbody></table>
             </div>
             
+            <!-- Global Defaults -->
             <div class="card" style="border-top: 4px solid var(--primary);">
                 <h3 style="margin-bottom: 1rem;">Global Domain Defaults</h3>
                 <p style="font-size:0.85rem; margin-bottom:15px; opacity:0.8">Apply to all domains unless customized.</p>
@@ -215,11 +248,13 @@
             </div>
         </div>
 
+        <!-- NETWORK & MESSAGES TAB -->
         <div id="view-network" class="content-section">
             <div class="card">
                 <h3 style="margin-bottom: 1.5rem;">Network & Notification Settings</h3>
                 <form id="networkForm">
                     
+                    <!-- 1. Notification Channels (Dropdown Selection) -->
                     <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
                         <h4 style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">📢 Notification Channels</h4>
                         
@@ -234,29 +269,41 @@
                             </select>
                         </div>
 
+                        <!-- Telegram Settings -->
                         <div id="telegramSettings" class="platform-card">
                             <label style="font-weight: bold; color: #2481cc; display: flex; align-items: center; gap: 5px;">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" width="20" alt="Telegram"> Telegram
                             </label>
                             <div class="form-grid" style="margin-top: 10px;">
-                                <div><label>Bot Token</label><input type="text" id="tgToken" placeholder="123456:ABC-DEF..."></div>
-                                <div><label>Chat ID</label><div style="display: flex; gap: 10px;"><input type="text" id="tgChat" placeholder="-100123456789"><button type="button" onclick="testTelegram()" style="background: #2481cc; color: white; width: auto; padding: 0 20px;">Test</button></div></div>
+                                <div>
+                                    <label>Bot Token</label>
+                                    <input type="text" id="tgToken" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+                                </div>
+                                <div>
+                                    <label>Chat ID</label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="text" id="tgChat" placeholder="-100123456789">
+                                        <button type="button" onclick="testTelegram()" style="background: #2481cc; color: white; width: auto; padding: 0 20px;">Test</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- Mattermost Settings -->
                         <div id="mattermostSettings" class="platform-card">
                             <label style="font-weight: bold; color: #1c1f2e; display: flex; align-items: center; gap: 5px;">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/archive/9/97/20210620141915%21Mattermost_logo.svg" width="20" alt="Mattermost"> Mattermost
                             </label>
                             <div style="margin-top: 10px;">
-                                <label>Webhook URL (Domain or IP)</label>
+                                <label>Webhook URL</label>
                                 <div style="display: flex; gap: 10px;">
-                                    <input type="text" id="mmUrl" placeholder="http://host.docker.internal:8065/hooks/...">
+                                    <input type="text" id="mmUrl" placeholder="https://your-mattermost-server.com/hooks/...">
                                     <button type="button" onclick="testWebhook('mmUrl', 'mattermost')" style="background: #1c1f2e; color: white; width: auto; padding: 0 20px;">Test</button>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Slack Settings -->
                         <div id="slackSettings" class="platform-card">
                             <label style="font-weight: bold; color: #4a154b; display: flex; align-items: center; gap: 5px;">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg" width="20" alt="Slack"> Slack
@@ -270,18 +317,23 @@
                             </div>
                         </div>
 
+                        <!-- Other/Custom Settings -->
                         <div id="otherSettings" class="platform-card">
-                            <label style="font-weight: bold; color: var(--text-main); display: flex; align-items: center; gap: 5px;">🔌 Other (Custom Webhook)</label>
+                            <label style="font-weight: bold; color: var(--text-main); display: flex; align-items: center; gap: 5px;">
+                                🔌 Other (Custom Webhook)
+                            </label>
                             <div style="margin-top: 10px;">
-                                <label>Webhook URL (Domain or IP)</label>
+                                <label>Webhook URL</label>
                                 <div style="display: flex; gap: 10px;">
-                                    <input type="text" id="customUrl" placeholder="http://10.0.0.50/api/webhook">
+                                    <input type="text" id="customUrl" placeholder="https://discord.com/api/webhooks/...">
                                     <button type="button" onclick="testWebhook('customUrl', 'custom')" style="background: var(--text-light); color: white; width: auto; padding: 0 20px;">Test</button>
                                 </div>
                             </div>
                         </div>
+
                     </div>
 
+                    <!-- 2. بخش پروکسی و زمان‌بندی -->
                     <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
                         <h4 style="margin-bottom: 15px;">🌐 Connectivity & Interval</h4>
                         <div class="form-grid">
@@ -290,6 +342,7 @@
                         </div>
                     </div>
 
+                    <!-- 3. بخش قالب پیام‌ها -->
                     <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
                         <h4 style="margin-bottom: 10px;">💬 Notification Message Templates</h4>
                         <p style="font-size:0.8rem; color:var(--text-light); margin-bottom:15px;">Available placeholders: <b>{url}</b>, <b>{days}</b></p>
@@ -302,6 +355,7 @@
                         </div>
                     </div>
                     
+                    <!-- Action Buttons -->
                     <div style="display: flex; gap: 10px; margin-top: 2rem;">
                         <button type="submit" class="btn-primary" style="background:#10b981; padding: 15px 30px; font-size: 1rem;">Save All Configuration</button>
                         <button type="button" onclick="simulateAlert()" style="background:#ef4444; color:white; border:none; border-radius:8px; padding: 0 30px; font-weight:600; cursor:pointer;">🚨 Simulate Global Alert</button>
@@ -311,6 +365,7 @@
         </div>
     </div>
 
+    <!-- Scripts -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
         const token = localStorage.getItem('access_token');
@@ -318,7 +373,7 @@
         
         function showToast(msg, type='success') {
             let bg = "#10b981"; if(type==='error') bg = "#ef4444"; if(type==='info') bg = "#3b82f6";
-            Toastify({ text: msg, duration: 4000, gravity: "top", position: "right", style: { background: bg, borderRadius: "10px", fontWeight: "500", maxWidth: "400px" } }).showToast();
+            Toastify({ text: msg, duration: 3000, gravity: "top", position: "right", style: { background: bg, borderRadius: "10px", fontWeight: "500" } }).showToast();
         }
 
         function logout() { if(confirm("Are you sure you want to logout?")){ localStorage.removeItem('access_token'); window.location.href='/login'; } }
@@ -328,10 +383,22 @@
 
         let allDomains = []; let globalSettings = {}; 
 
+        // Function to handle platform selection visibility
         function showPlatformSettings() {
+            // Hide all platform cards first
             document.querySelectorAll('.platform-card').forEach(card => card.classList.remove('active'));
+            
             const selected = document.getElementById('platformSelect').value;
-            if (selected !== 'none') document.getElementById(`${selected}Settings`).classList.add('active');
+            
+            if (selected === 'telegram') {
+                document.getElementById('telegramSettings').classList.add('active');
+            } else if (selected === 'mattermost') {
+                document.getElementById('mattermostSettings').classList.add('active');
+            } else if (selected === 'slack') {
+                document.getElementById('slackSettings').classList.add('active');
+            } else if (selected === 'other') {
+                document.getElementById('otherSettings').classList.add('active');
+            }
         }
 
         // Load Initial Data
@@ -367,6 +434,7 @@
 
         function fillSettings(data) {
             if(!data) return;
+            // Network
             document.getElementById('tgToken').value = data.telegram_bot_token||'';
             document.getElementById('tgChat').value = data.telegram_chat_id||'';
             document.getElementById('proxyUrl').value = data.proxy_url||'';
@@ -375,11 +443,13 @@
             document.getElementById('customUrl').value = data.custom_webhook_url||'';
             document.getElementById('checkInterval').value = data.check_interval_hours||24;
             
+            // Messages
             document.getElementById('msgSslWarn').value = data.msg_ssl_warning || "⚠️ **SSL Warning**: {url}\nExpires in: {days} days";
             document.getElementById('msgSslCrit').value = data.msg_ssl_danger || "🚨 **SSL CRITICAL**: {url}\nExpires in: {days} days";
             document.getElementById('msgDomWarn').value = data.msg_dom_warning || "⏳ **Domain Warning**: {url}\nExpires in: {days} days";
             document.getElementById('msgDomCrit').value = data.msg_dom_danger || "🔥 **Domain CRITICAL**: {url}\nExpires in: {days} days";
             
+            // Globals
             document.getElementById('sslWarn').value = data.ssl_warning_days || 30;
             document.getElementById('sslGood').value = data.ssl_warning_days || 30;
             document.getElementById('sslDanger').value = data.ssl_danger_days || 7;
@@ -387,11 +457,13 @@
             document.getElementById('domGood').value = data.domain_warning_days || 60;
             document.getElementById('domDanger').value = data.domain_danger_days || 14;
 
+            // Show the first filled platform or default to telegram if all empty, or none
             if(data.telegram_bot_token) { document.getElementById('platformSelect').value = 'telegram'; }
             else if(data.mattermost_url) { document.getElementById('platformSelect').value = 'mattermost'; }
             else if(data.slack_webhook_url) { document.getElementById('platformSelect').value = 'slack'; }
             else if(data.custom_webhook_url) { document.getElementById('platformSelect').value = 'other'; }
             else { document.getElementById('platformSelect').value = 'none'; }
+            
             showPlatformSettings();
         }
 
@@ -415,6 +487,7 @@
             if(res.ok) showToast('Network Settings Saved!');
         });
 
+        // --- Tests ---
         async function testTelegram() {
             const botToken = document.getElementById('tgToken').value;
             const chatId = document.getElementById('tgChat').value;
@@ -422,43 +495,22 @@
             showToast('Sending to Telegram...', 'info');
             try {
                 const res = await fetch('/settings/test-telegram', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ token: botToken, chat_id: chatId }) });
-                if(res.ok) showToast('✅ Telegram OK'); else showToast('❌ Failed to send', 'error');
-            } catch(e) { showToast('Connection Error', 'error'); }
+                if(res.ok) showToast('✅ Telegram OK'); else showToast('❌ Failed', 'error');
+            } catch(e) { showToast('Error', 'error'); }
         }
 
         async function testWebhook(inputId, platform) {
-            let url = document.getElementById(inputId).value.trim();
+            const url = document.getElementById(inputId).value;
             if(!url) return showToast('Enter Webhook URL', 'error');
-            if(!url.startsWith('http')) return showToast('URL must start with http:// or https://', 'error');
-
-            if(url.includes('127.0.0.1') || url.includes('localhost')) {
-                showToast('⚠️ If in Docker, use host.docker.internal instead of localhost', 'info');
-            }
-
             showToast(`Sending to ${platform}...`, 'info');
             try {
                 const res = await fetch(`/settings/test-webhook?platform=${platform}`, { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
-                    // FIX: Sending 'webhook_url' as required by server
                     body: JSON.stringify({ webhook_url: url }) 
                 });
-                
-                if(res.ok) {
-                    showToast(`✅ ${platform} OK`); 
-                } else {
-                    const err = await res.json();
-                    let msg = `Status ${res.status}`;
-                    if(err.detail) {
-                        if(Array.isArray(err.detail)) msg = err.detail.map(e => `${e.loc[e.loc.length-1]}: ${e.msg}`).join(', ');
-                        else msg = err.detail;
-                    }
-                    showToast(`❌ Failed: ${msg}`, 'error');
-                }
-            } catch(e) { 
-                console.error(e);
-                showToast('Connection Error. Use host.docker.internal for local services.', 'error'); 
-            }
+                if(res.ok) showToast(`✅ ${platform} OK`); else showToast('❌ Failed', 'error');
+            } catch(e) { showToast('Error', 'error'); }
         }
         
         async function simulateAlert() {
