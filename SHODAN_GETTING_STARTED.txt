@@ -1,0 +1,292 @@
+================================================================================
+                   SHODAN INTEGRATION - GETTING STARTED
+================================================================================
+
+Welcome! Your SSL Checker application now has complete Shodan intelligence 
+integration. Follow these simple steps to get started:
+
+================================================================================
+STEP 1: GET YOUR SHODAN API KEY (2 minutes)
+================================================================================
+
+Visit: https://www.shodan.io
+
+1. Click "Sign Up" or "Log In"
+2. Create account or log in
+3. Go to Account → API Key
+4. Copy your API key (looks like: xxxxxxxxxxxxxxxxxxxxxxxx)
+
+You can get started with a FREE account!
+
+================================================================================
+STEP 2: INSTALL THE PACKAGE (1 minute)
+================================================================================
+
+Run in your terminal:
+
+    pip install -r requirements.txt
+
+This will install the Shodan package and all dependencies.
+
+================================================================================
+STEP 3: SET YOUR API KEY (1 minute)
+================================================================================
+
+Option A - Environment Variable (Recommended):
+
+    export SHODAN_API_KEY="your_api_key_here"
+
+Option B - Dashboard Settings:
+
+1. Log in to SSL Checker dashboard as admin
+2. Go to Settings → API Keys
+3. Paste your Shodan API key
+4. Click Save
+
+================================================================================
+STEP 4: TEST IT (2 minutes)
+================================================================================
+
+Get your domain ID from the domains list (e.g., domain ID 1)
+
+Test 1 - Get search URL (no API key needed):
+
+    curl -H "Authorization: Bearer YOUR_TOKEN" \
+      http://localhost:8000/api/domains/1/shodan/search-url
+
+Should return: https://www.shodan.io/search?query=yourdomain.com
+
+Test 2 - Get detailed data (requires API key):
+
+    curl -H "Authorization: Bearer YOUR_TOKEN" \
+      http://localhost:8000/api/domains/1/shodan
+
+Should return: JSON with device info, ports, organization, etc.
+
+Test 3 - Refresh all domains (admin only):
+
+    curl -X POST \
+      -H "Authorization: Bearer ADMIN_TOKEN" \
+      http://localhost:8000/api/domains/shodan/refresh-all
+
+Should return: Number of updated domains
+
+================================================================================
+STEP 5: INTEGRATE WITH DASHBOARD (5 minutes)
+================================================================================
+
+1. Add the Shodan button to your domain list:
+
+   <button 
+     onclick="viewShodanData(${domain.id}, '${domain.url}')"
+     class="btn btn-sm btn-info">
+     <i class="fas fa-search"></i> Shodan
+   </button>
+
+2. Include the Shodan UI component in your template:
+
+   Include contents of: static/shodan_panel.html
+
+3. Add Shodan API key field to settings form:
+
+   <input type="password" id="shodan_api_key" placeholder="API Key">
+
+4. Save the API key when settings are updated
+
+Done! You can now view Shodan data for all your domains.
+
+================================================================================
+FEATURES YOU NOW HAVE
+================================================================================
+
+✓ Shodan Search URLs - Direct links to Shodan results
+✓ Device Information - IP addresses, ports, hostnames
+✓ Organization Data - ISP and organization info
+✓ Service Details - OS, services, SSL info
+✓ Smart Caching - 24-hour cache to save API quota
+✓ Batch Operations - Refresh all domains at once
+✓ Security - API key protection, access control
+✓ Responsive UI - Works on desktop and mobile
+
+================================================================================
+API ENDPOINTS
+================================================================================
+
+Endpoint 1: Get Search URL (No API key needed)
+GET /api/domains/{domain_id}/shodan/search-url
+
+Example:
+  curl http://localhost:8000/api/domains/1/shodan/search-url
+
+Response:
+  {
+    "domain": "example.com",
+    "search_url": "https://www.shodan.io/search?query=example.com"
+  }
+
+Endpoint 2: Get Detailed Data (Requires API key)
+GET /api/domains/{domain_id}/shodan
+
+Example:
+  curl http://localhost:8000/api/domains/1/shodan
+
+Response:
+  {
+    "domain": "example.com",
+    "data": {
+      "status": "success",
+      "total_results": 5,
+      "devices": [...]
+    }
+  }
+
+Endpoint 3: Refresh All (Admin only)
+POST /api/domains/shodan/refresh-all
+
+Example:
+  curl -X POST http://localhost:8000/api/domains/shodan/refresh-all
+
+Response:
+  {
+    "total": 10,
+    "updated": 10,
+    "failed": 0
+  }
+
+================================================================================
+COMMON QUESTIONS
+================================================================================
+
+Q: Do I need an API key?
+A: No for search URLs, yes for detailed data. Start with search URLs!
+
+Q: How much does Shodan cost?
+A: Free account has 1 query/month. Upgrade anytime for more.
+
+Q: How often is the data updated?
+A: Cached for 24 hours, can be manually refreshed.
+
+Q: Can I see who used my API key?
+A: Check Shodan account dashboard for API usage logs.
+
+Q: What if I don't have an API key yet?
+A: Use the search URL endpoint - it works without a key!
+
+Q: How do I get more API quota?
+A: Upgrade your Shodan plan or request educational pricing.
+
+Q: Is my API key secure?
+A: Yes - stored in environment variables, never in code/logs.
+
+Q: Can I use this in production?
+A: Yes - includes proper error handling and rate limiting.
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: "Module shodan not found"
+Solution: Run: pip install shodan>=1.28.0
+
+Problem: "API key not configured"
+Solution: Set SHODAN_API_KEY environment variable or add in dashboard
+
+Problem: "Invalid API key"
+Solution: Check your key at shodan.io/account/api - copy again
+
+Problem: "API request timeout"
+Solution: Check internet connection, verify Shodan API is up
+
+Problem: "Rate limit exceeded"
+Solution: Upgrade your plan or use the 24-hour cache
+
+Problem: No Shodan data showing in dashboard
+Solution: 
+  1. Check API key is set
+  2. Check endpoints return data with curl
+  3. Check browser console for JavaScript errors
+  4. Check domain ID is correct
+
+================================================================================
+DOCUMENTATION
+================================================================================
+
+For more information, read these files:
+
+SHODAN_QUICKSTART.md
+  → Fast 5-minute reference guide
+
+SHODAN_INTEGRATION.md
+  → Complete API documentation with examples
+
+SHODAN_SETUP.md
+  → Detailed step-by-step setup instructions
+
+SHODAN_README.md
+  → Full feature overview and use cases
+
+examples/shodan_example.py
+  → Python code examples
+
+================================================================================
+QUICK EXAMPLE
+================================================================================
+
+Here's a quick Python example:
+
+    import requests
+    
+    token = "your_token"
+    domain_id = 1
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    # Get search URL
+    response = requests.get(
+        f"http://localhost:8000/api/domains/{domain_id}/shodan/search-url",
+        headers=headers
+    )
+    data = response.json()
+    print(f"View at: {data['search_url']}")
+    
+    # Get detailed data
+    response = requests.get(
+        f"http://localhost:8000/api/domains/{domain_id}/shodan",
+        headers=headers
+    )
+    data = response.json()
+    print(f"Total devices: {data['data']['total_results']}")
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. ✓ Get your Shodan API key
+2. ✓ Set the SHODAN_API_KEY environment variable
+3. ✓ Restart your application
+4. ✓ Test the endpoints with curl
+5. ✓ Integrate into your dashboard
+6. ✓ Add Shodan button to domain list
+7. ✓ Set up monitoring and alerts
+
+================================================================================
+NEED HELP?
+================================================================================
+
+Shodan Resources:
+  - API Docs: https://www.shodan.io/api_docs
+  - Search Filters: https://www.shodan.io/search/filters
+  - Forum: https://forums.shodan.io
+  - Email: support@shodan.io
+
+Application Documentation:
+  - See SHODAN_SETUP.md for detailed setup
+  - See SHODAN_INTEGRATION.md for API reference
+  - See examples/shodan_example.py for code samples
+
+================================================================================
+
+Good luck! You're all set to use Shodan intelligence in your SSL Checker.
+
+Questions? Check the documentation files above or visit shodan.io
+
+================================================================================
