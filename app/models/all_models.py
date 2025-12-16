@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, JSON, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.session import Base
@@ -17,6 +17,7 @@ class AppSettings(Base):
     
     proxy_url = Column(String, nullable=True)
     check_interval_hours = Column(Integer, default=24)
+    shodan_api_key = Column(String, nullable=True)
 
     telegram_bot_token = Column(String, nullable=True)
     telegram_chat_id = Column(String, nullable=True)
@@ -48,6 +49,10 @@ class Domain(Base):
     notify_on_critical = Column(Boolean, default=True)
     monitor_ssl = Column(Boolean, default=True)
     monitor_domain = Column(Boolean, default=True)
+    
+    # Shodan data fields
+    shodan_data = Column(JSON, nullable=True)
+    shodan_last_checked = Column(DateTime, nullable=True)
 
     history = relationship("DomainHistory", back_populates="domain", cascade="all, delete-orphan")
 

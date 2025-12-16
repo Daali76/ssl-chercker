@@ -333,16 +333,35 @@
 
                     </div>
 
-                    <!-- 2. بخش پروکسی و زمان‌بندی -->
+                    <!-- 2. Rate Limiting Configuration -->
                     <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
-                        <h4 style="margin-bottom: 15px;">🌐 Connectivity & Interval</h4>
-                        <div class="form-grid">
-                            <div><label>Proxy Configuration</label><input type="text" id="proxyUrl" placeholder="Protocol://User:Pass@Host:Port"></div>
-                            <div><label>Background Check Interval (Hours)</label><input type="number" id="checkInterval" style="width: 100px;" placeholder="24"></div>
+                        <h4 style="margin-bottom: 15px;">🛡️ Rate Limiting Settings</h4>
+                        <div class="form-grid-3">
+                            <div>
+                                <label>Login Attempts (per minute)</label>
+                                <input type="number" id="rateLimitLogin" min="1" max="100" placeholder="5">
+                            </div>
+                            <div>
+                                <label>API Calls (per minute)</label>
+                                <input type="number" id="rateLimitApi" min="1" max="1000" placeholder="100">
+                            </div>
+                            <div>
+                                <label>Vulnerability Scans (per hour)</label>
+                                <input type="number" id="rateLimitScan" min="1" max="100" placeholder="5">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 3. بخش قالب پیام‌ها -->
+                    <!-- 3. Connectivity & Interval Settings -->
+                    <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 25px;">
+                        <h4 style="margin-bottom: 15px;">🌐 Connectivity & Monitoring Interval</h4>
+                        <div class="form-grid">
+                            <div><label>Background Check Interval (Hours)</label><input type="number" id="checkInterval" style="width: 100px;" placeholder="24"></div>
+                            <div><label>Proxy Configuration</label><input type="text" id="proxyUrl" placeholder="Protocol://User:Pass@Host:Port"></div>
+                        </div>
+                    </div>
+
+                    <!-- 4. بخش قالب پیام‌ها -->
                     <div style="background: rgba(0,0,0,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
                         <h4 style="margin-bottom: 10px;">💬 Notification Message Templates</h4>
                         <p style="font-size:0.8rem; color:var(--text-light); margin-bottom:15px;">Available placeholders: <b>{url}</b>, <b>{days}</b></p>
@@ -443,6 +462,11 @@
             document.getElementById('customUrl').value = data.custom_webhook_url||'';
             document.getElementById('checkInterval').value = data.check_interval_hours||24;
             
+            // Rate Limits
+            document.getElementById('rateLimitLogin').value = data.rate_limit_login||5;
+            document.getElementById('rateLimitApi').value = data.rate_limit_api||100;
+            document.getElementById('rateLimitScan').value = data.rate_limit_scan||5;
+            
             // Messages
             document.getElementById('msgSslWarn').value = data.msg_ssl_warning || "⚠️ **SSL Warning**: {url}\nExpires in: {days} days";
             document.getElementById('msgSslCrit').value = data.msg_ssl_danger || "🚨 **SSL CRITICAL**: {url}\nExpires in: {days} days";
@@ -477,6 +501,10 @@
                 slack_webhook_url: document.getElementById('slackUrl').value,
                 custom_webhook_url: document.getElementById('customUrl').value,
                 check_interval_hours: parseInt(document.getElementById('checkInterval').value),
+                
+                rate_limit_login: parseInt(document.getElementById('rateLimitLogin').value) || 5,
+                rate_limit_api: parseInt(document.getElementById('rateLimitApi').value) || 100,
+                rate_limit_scan: parseInt(document.getElementById('rateLimitScan').value) || 5,
                 
                 msg_ssl_warning: document.getElementById('msgSslWarn').value,
                 msg_ssl_danger: document.getElementById('msgSslCrit').value,

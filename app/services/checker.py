@@ -73,19 +73,32 @@ def get_whois_api(hostname: str):
             with urllib.request.urlopen(req, timeout=10, context=get_unsafe_context()) as response:
                 text = response.read().decode('utf-8', errors='ignore')
                 
-                # Patterns for expiry date
+                # Patterns for expiry date - with better .ir domain support
                 patterns = [
-                    r'expire-date:\s*(\d{4}-\d{2}-\d{2})',       # irnic
+                    # .ir domains (IRNIC)
+                    r'expire-date:\s*(\d{4}-\d{2}-\d{2})',
+                    r'expire date:\s*(\d{4}-\d{2}-\d{2})',
+                    # Generic patterns
                     r'Registry Expiry Date:\s*(\d{4}-\d{2}-\d{2})',
                     r'Expiry Date:\s*(\d{4}-\d{2}-\d{2})',
-                    r'Expires On:</div><div class="df-value">(\d{4}-\d{2}-\d{2})</div>'
+                    r'expiry date:\s*(\d{4}-\d{2}-\d{2})',
+                    # HTML patterns
+                    r'Expires On:</div><div class="df-value">(\d{4}-\d{2}-\d{2})</div>',
+                    # Alternative date formats with time
+                    r'expire[d]?[-\s]*date[:\s]*(\d{4}-\d{2}-\d{2})',
+                    # Fallback: any date pattern after key words
+                    r'(?:expir|renew|until|end).*?(\d{4}-\d{2}-\d{2})',
                 ]
                 
                 for p in patterns:
                     match = re.search(p, text, re.IGNORECASE)
                     if match:
-                        return datetime.datetime.strptime(match.group(1), '%Y-%m-%d')
-        except:
+                        try:
+                            return datetime.datetime.strptime(match.group(1), '%Y-%m-%d')
+                        except ValueError:
+                            continue
+        except Exception as e:
+            logger.debug(f"API lookup error for {hostname} using {url}: {e}")
             continue
     return None
 

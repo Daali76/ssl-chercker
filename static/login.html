@@ -20,7 +20,7 @@
             --input-border: #e2e8f0;
             --input-focus: #6366f1;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* سایه عمیق‌تر برای هاور */
+            --shadow-hover: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
         body.dark-mode {
@@ -50,7 +50,7 @@
             overflow: hidden;
         }
 
-        /* Background Blobs (دایره‌های محو جایگزین نوار کج) */
+        /* Background decoration circles for visual appeal */
         .blob { position: absolute; border-radius: 50%; filter: blur(60px); z-index: 0; opacity: 0.6; }
         .blob-1 { top: -10%; right: -5%; width: 300px; height: 300px; background: var(--primary); animation: float 8s infinite ease-in-out; }
         .blob-2 { bottom: -10%; left: -5%; width: 350px; height: 350px; background: #a855f7; animation: float 10s infinite ease-in-out reverse; }
@@ -66,30 +66,27 @@
             box-shadow: var(--shadow);
             text-align: center;
             border: 1px solid transparent;
-            
-            /* --- تنظیمات حرکت کارت --- */
-            /* transform: حرکت نرم کارت */
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.3s ease;
         }
         
-        /* وقتی موس روی کارت می‌رود */
+        /* Smooth card lift animation on hover */
         .card:hover {
-            transform: translateY(-10px) scale(1.01); /* کمی بالا می‌رود و خیلی کم بزرگ می‌شود */
-            box-shadow: var(--shadow-hover); /* سایه بیشتر می‌شود */
+            transform: translateY(-10px) scale(1.01);
+            box-shadow: var(--shadow-hover);
         }
 
         body.dark-mode .card { border-color: #334155; }
 
-        /* --- دکمه نایت مود --- */
+        /* Dark mode toggle button */
         .theme-toggle {
             position: absolute; 
             top: 20px; 
             right: 20px;
-            width: 40px; /* سایز ثابت و کوچک */
+            width: 40px;
             height: 40px;
             background: var(--card-bg); 
             border: 1px solid var(--input-border); 
-            border-radius: 50%; /* کاملا گرد */
+            border-radius: 50%;
             cursor: pointer;
             font-size: 1.2rem; 
             color: var(--text-main); 
@@ -98,7 +95,7 @@
             z-index: 10;
         }
         
-        /* فقط کمی بزرگ شود، کج نشود */
+        /* Subtle scale effect on theme toggle hover */
         .theme-toggle:hover { 
             transform: scale(1.1); 
             background: var(--bg-body);

@@ -19,10 +19,32 @@ async def send_telegram(message: str, settings: AppSettings):
 async def send_mattermost(message: str, webhook_url: str):
     if not webhook_url: return
     try:
-        payload = {"text": message, "username": "SSL Monitor", "icon_url": "https://cdn-icons-png.flaticon.com/512/2092/2092063.png"}
+        # Mattermost supports multiple payload formats
+        payload = {
+            "text": message,
+            "username": "🔒 SSL Monitor",
+            "icon_emoji": ":lock:",  # Use emoji instead of icon_url (more reliable)
+            "mattermost_format": True
+        }
+        
+        # Alternative: Use attachments for richer formatting
+        if len(message) > 200:
+            payload = {
+                "username": "🔒 SSL Monitor",
+                "attachments": [{
+                    "fallback": message,
+                    "text": message,
+                    "color": "#6366f1",
+                    "mattermost_app_id": "ssl-checker"
+                }]
+            }
+        
         async with aiohttp.ClientSession() as session:
-            await session.post(webhook_url, json=payload, timeout=10)
-    except Exception as e: logger.error(f"Mattermost Error: {e}")
+            async with session.post(webhook_url, json=payload, timeout=10) as resp:
+                if resp.status not in [200, 201]:
+                    logger.warning(f"Mattermost webhook returned {resp.status}")
+    except Exception as e: 
+        logger.error(f"Mattermost Error: {e}")
 
 async def send_slack(message: str, webhook_url: str):
     if not webhook_url: return
@@ -56,12 +78,24 @@ async def send_test_telegram_msg(token: str, chat_id: str, proxy: str = None) ->
 
 async def send_test_mattermost_msg(webhook_url: str) -> dict:
     if not webhook_url: return {"success": False, "error": "URL is empty"}
-    payload = {"text": "✅ **SSL Monitor Test**\nMattermost connected!", "username": "SSL Bot"}
+    
+    # Test payload with emoji icon (more reliable than icon_url)
+    payload = {
+        "text": "✅ **SSL Monitor Test**\nMattermost integration is working!",
+        "username": "🔒 SSL Monitor",
+        "icon_emoji": ":lock:"
+    }
+    
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(webhook_url, json=payload, timeout=10) as resp:
-                return {"success": True} if resp.status == 200 else {"success": False, "error": f"Status {resp.status}: {await resp.text()}"}
-    except Exception as e: return {"success": False, "error": str(e)}
+                if resp.status in [200, 201]:
+                    return {"success": True}
+                else:
+                    error_text = await resp.text()
+                    return {"success": False, "error": f"Status {resp.status}: {error_text}"}
+    except Exception as e: 
+        return {"success": False, "error": str(e)}
 
 async def send_test_webhook_msg(webhook_url: str, platform: str) -> dict:
     if not webhook_url: return {"success": False, "error": "URL is empty"}

@@ -49,6 +49,7 @@ class SettingsUpdate(BaseModel):
     mattermost_url: Optional[str] = None
     slack_webhook_url: Optional[str] = None
     custom_webhook_url: Optional[str] = None
+    shodan_api_key: Optional[str] = None
     
     ssl_danger_days: Optional[int] = None
     ssl_warning_days: Optional[int] = None

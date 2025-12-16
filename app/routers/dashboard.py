@@ -93,6 +93,7 @@ async def get_ssl_status(user: User = Depends(get_current_user), db: Session = D
         elif "error" in states: overall_status = "error"
         
         return {
+            "id": d.id,
             "domain": d.url,
             "overall_status": overall_status,
             "ssl": { "expiry_date": ssl_exp.strftime('%Y-%m-%d') if ssl_exp else None, "days_remaining": ssl_days, "status": ssl_status },

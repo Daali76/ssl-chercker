@@ -4,12 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
+from datetime import datetime
 
 from app.db.session import get_db
 from app.models.all_models import Domain, User, DomainHistory
 from app.schemas.schemas import DomainCreate, DomainUpdate
 from app.core.security import get_current_admin, get_current_user
 from app.core.config import settings
+from app.services.shodan_service import ShodanService
 
 router = APIRouter()
 
@@ -136,3 +138,101 @@ async def import_domains(file: UploadFile = File(...), db: Session = Depends(get
         added_count += 1
     db.commit()
     return {"status": "finished", "added": added_count, "skipped": skipped_count}
+
+
+@router.get("/{did}/shodan")
+async def get_domain_shodan(did: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """
+    Get Shodan intelligence data for a specific domain.
+    Returns cached data if available, otherwise fetches fresh data.
+    """
+    domain = db.query(Domain).filter(Domain.id == did).first()
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    
+    shodan_service = ShodanService()
+    
+    # Return cached data if available and fresh (less than 24 hours old)
+    if domain.shodan_data and domain.shodan_last_checked:
+        from datetime import timedelta
+        time_diff = datetime.utcnow() - domain.shodan_last_checked
+        if time_diff < timedelta(hours=24):
+            return {
+                "domain": domain.url,
+                "data": domain.shodan_data,
+                "cached": True,
+                "last_checked": domain.shodan_last_checked,
+                "search_url": shodan_service.get_shodan_search_url(domain.url)
+            }
+    
+    # Fetch fresh data
+    raw_data = await shodan_service.fetch_shodan_api_data(domain.url)
+    parsed_data = ShodanService.parse_shodan_results(raw_data)
+    
+    # Cache the data
+    domain.shodan_data = parsed_data
+    domain.shodan_last_checked = datetime.utcnow()
+    db.commit()
+    
+    return {
+        "domain": domain.url,
+        "data": parsed_data,
+        "cached": False,
+        "last_checked": domain.shodan_last_checked,
+        "search_url": shodan_service.get_shodan_search_url(domain.url)
+    }
+
+
+@router.get("/shodan/search-url/{did}")
+def get_domain_shodan_search_url(did: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """
+    Get the Shodan search URL for a domain (no API required).
+    This directly links to https://www.shodan.io/search?query=domain
+    """
+    domain = db.query(Domain).filter(Domain.id == did).first()
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    
+    shodan_service = ShodanService()
+    search_url = shodan_service.get_shodan_search_url(domain.url)
+    
+    return {
+        "domain": domain.url,
+        "search_url": search_url,
+        "redirect_url": search_url
+    }
+
+
+@router.post("/shodan/refresh-all")
+async def refresh_all_shodan_data(db: Session = Depends(get_db), admin: User = Depends(get_current_admin)):
+    """
+    Refresh Shodan data for all domains (admin only).
+    Returns count of updated domains and any errors.
+    """
+    domains = db.query(Domain).all()
+    shodan_service = ShodanService()
+    
+    results = {
+        "total": len(domains),
+        "updated": 0,
+        "failed": 0,
+        "errors": []
+    }
+    
+    for domain in domains:
+        try:
+            raw_data = await shodan_service.fetch_shodan_api_data(domain.url)
+            parsed_data = ShodanService.parse_shodan_results(raw_data)
+            
+            domain.shodan_data = parsed_data
+            domain.shodan_last_checked = datetime.utcnow()
+            results["updated"] += 1
+        except Exception as e:
+            results["failed"] += 1
+            results["errors"].append({
+                "domain": domain.url,
+                "error": str(e)
+            })
+    
+    db.commit()
+    return results
