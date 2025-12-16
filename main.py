@@ -117,6 +117,4 @@ app.include_router(dashboard.router, tags=["Dashboard"])
 app.include_router(vulnerabilities.router, tags=["Vulnerabilities"])
 
 
-if __name__ == "__main__":
-    import gunicorn
-    gunicorn.run(app, host="0.0.0.0", port=8000) 
+
